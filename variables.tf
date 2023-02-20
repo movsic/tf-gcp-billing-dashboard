@@ -1,8 +1,3 @@
-variable "project-id" {
-  type        = string
-  description = "Project to deploy the billing dashboard view."
-}
-
 variable "bq-billing-export-table-name" {
   type        = string
   description = "Standard billing export bigquery table name."
@@ -10,7 +5,11 @@ variable "bq-billing-export-table-name" {
 
 variable "bq-dashboard-dataset-name" {
   type        = string
-  description = "Bigquery dataset where the dashboard view will be created. Should already exist. Can be the same as the billing export dataset."
+  description = "Bigquery dataset where the dashboard view will be created. Should already exist. Must be in the format <project-id>.<bq-dataset-name>"
+  validation {
+    condition = can(regex("^[0-9a-zA-Z-]*\\.[0-9a-zA-Z_]*$", var.bq-dashboard-dataset-name))
+    error_message = "Bq dataset id must be in the format <project-id>.<bq-dataset-name>"
+  }
 }
 
 variable "bq-dashboard-view-name" {
@@ -34,7 +33,7 @@ variable "looker-studio-service-account-name" {
 variable "looker-studio-service-agent-name" {
   type        = string
   default     = null
-  description = "Looker studio service agent name to be used with the looker studio dashboard. If empty no gcp service account will be created and looker dashboard will be used with the executor's personal gcp account only."
+  description = "Looker studio service agent name to be used with the looker studio dashboard. Can be copied from https://lookerstudio.google.com/c/serviceAgentHelp. If empty no gcp service account will be created and looker dashboard will be used with the executor's personal gcp account only."
 }
 
 variable "looker-template-report-id" {
