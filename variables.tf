@@ -1,6 +1,6 @@
 variable "project-id" {
   type        = string
-  description = "Project to deploy the billing dashboard view"
+  description = "Project to deploy the billing dashboard view."
 }
 
 variable "bq-billing-export-table-name" {
@@ -28,7 +28,13 @@ variable "billing-data-interval" {
 variable "looker-studio-service-account-name" {
   type        = string
   default     = "looker-studio-sa"
-  description = "Service account name to be used with the looker studio dashboard."
+  description = "GCP service account name to be used with the looker studio dashboard."
+}
+
+variable "looker-studio-service-agent-name" {
+  type        = string
+  default     = null
+  description = "Looker studio service agent name to be used with the looker studio dashboard. If empty no gcp service account will be created and looker dashboard will be used with the executor's personal gcp account only."
 }
 
 variable "looker-template-report-id" {

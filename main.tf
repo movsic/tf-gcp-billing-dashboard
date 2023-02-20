@@ -1,10 +1,11 @@
-#TODO output looker sa registration
-#TODO output sa instructions
-#TODO is looker account a service account?
-
 #Need to know the associated org id to to construct a looker studio service agent name
 data "google_project" "current_project" {
   project_id = var.project-id
+}
+
+locals {
+  #currently not used as there is no way to automatically create looker studio service agents
+  looker-studio-service-agent-name = var.looker-studio-service-agent-name == null ? "serviceAccount:service-org-${data.google_project.current_project.org_id}@gcp-sa-datastudio.iam.gserviceaccount.com" : "serviceAccount:${var.looker-studio-service-agent-name}"
 }
 
 resource "google_bigquery_table" "target_view_name" {
@@ -30,32 +31,36 @@ EOF
 
 #service account to be used with looker studio service agent
 resource "google_service_account" "looker_studio" {
+  count = "${var.looker-studio-service-agent-name != null ? 1 : 0}"
   account_id   = var.looker-studio-service-account-name
   display_name = "Service Account to be used by looker studio for billing dashboard"
 }
 
 resource "google_project_iam_binding" "looker_studio_sa_bq_viewer" {
+  count = "${var.looker-studio-service-agent-name != null ? 1 : 0}"
   project = var.project-id
   role    = "roles/bigquery.dataViewer"
 
   members = [
-    "serviceAccount:${google_service_account.looker_studio.email}"
+    "serviceAccount:${google_service_account.looker_studio[0].email}"
   ]
 }
 
 resource "google_project_iam_binding" "looker_studio_sa_bq_job_user" {
+  count = "${var.looker-studio-service-agent-name != null ? 1 : 0}"
   project = var.project-id
   role    = "roles/bigquery.jobUser"
 
   members = [
-    "serviceAccount:${google_service_account.looker_studio.email}"
+    "serviceAccount:${google_service_account.looker_studio[0].email}"
   ]
 }
 
 resource "google_service_account_iam_binding" "token-creator-iam" {
-  service_account_id = google_service_account.looker_studio.id
+  count = "${var.looker-studio-service-agent-name != null ? 1 : 0}"
+  service_account_id = google_service_account.looker_studio[0].id
   role               = "roles/iam.serviceAccountTokenCreator"
   members = [
-    "serviceAccount:service-org-${data.google_project.current_project.org_id}@gcp-sa-datastudio.iam.gserviceaccount.com",
+    "serviceAccount:${var.looker-studio-service-agent-name}",
   ]
 }
